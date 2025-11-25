@@ -74,6 +74,8 @@ function PANEL:OnDocumentReady()
 
 
     self:_injectTimeUpdateListener()
+    self:_injectURLChangeListener()
+    self:_injectPlayStatusListeners()
 end
 
 vgui.Register("ZTVVideoYoutube", PANEL, "ZTVVideo")

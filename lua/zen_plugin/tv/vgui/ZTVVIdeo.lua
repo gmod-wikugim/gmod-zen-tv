@@ -8,6 +8,8 @@ function PANEL:Init()
     self.VideoCurrentTime = 0
 
     self.CurrentVolume = 1
+
+    self.CurrentlyPlaying = nil
 end
 
 -- Set Volume to current video
@@ -98,14 +100,86 @@ function PANEL:_injectTimeUpdateListener()
                 ztvvideo.timeupdate(video.currentTime);
             });
         }
+        
+        // Initial time
+        if (video) {
+            ztvvideo.timeupdate(video.currentTime);
+        }
     ]])
 end
+
+---@param url string
+function PANEL:OnURLChange(url)
+    -- print("ZTVVideo: URL Change: " .. tostring(url))
+end
+
+-- Inject URL Change Listener
+function PANEL:_injectURLChangeListener()
+    self:AddFunction("ztvvideo", "urlchange", function(newURL)
+        self.CurrentURL = newURL
+        self:OnURLChange(newURL)
+    end)
+
+    self:RunJavascript([[
+        var lastURL = window.location.href;
+        setInterval(function() {
+            var currentURL = window.location.href;
+            if (currentURL !== lastURL) {
+                lastURL = currentURL;
+                ztvvideo.urlchange(currentURL);
+            }
+        }, 100);
+
+        // Initial call
+        ztvvideo.urlchange(window.location.href);
+    ]])
+end
+
+
+function PANEL:IsPlaying() return self.CurrentlyPlaying end
+function PANEL:IsPaused() return self.CurrentlyPlaying == false end
+
+---@param status boolean
+function PANEL:OnPlayStatusChange(status)
+    -- print("ZTVVideo: Play Status Change: " .. tostring(status))
+end
+
+-- Inject video.play and video.pause listeners
+function PANEL:_injectPlayStatusListeners()
+    self:AddFunction("ztvvideo", "playstatuschange", function(status)
+        status = tobool(status)
+
+        self.CurrentlyPlaying = status
+        self:OnPlayStatusChange(status)
+    end)
+
+    self:RunJavascript([[
+        var video = document.querySelector("video");
+        if (video) {
+            video.addEventListener("play", function() {
+                ztvvideo.playstatuschange(true);
+            });
+            video.addEventListener("pause", function() {
+                ztvvideo.playstatuschange(false);
+            });
+        }
+        
+        // Initial status
+        if (video) {
+            ztvvideo.playstatuschange(!video.paused);
+        }
+    ]])
+end
+
+
 
 
 function PANEL:OnDocumentReady()
     -- print("ZTVVideo: Document Ready")
 
     self:_injectTimeUpdateListener()
+    self:_injectURLChangeListener()
+    self:_injectPlayStatusListeners()
 end
 
 -- OnVideoError
