@@ -1,0 +1,25 @@
+name: Upload workshop
+
+on:
+  push:
+
+jobs:
+  updateWorkshop:
+    runs-on: [self-hosted, linux, X64]
+    container:
+      image: jtaylerj/gmod-workshop-deploy:latest
+      volumes:
+        - ${{ github.workspace }}:/server
+      env:
+        STEAM_MAFILE: ${{ secrets.STEAM_MAFILE }}
+        STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+        STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
+        STEAM_WORKSHOPID: ${{ secrets.STEAM_WORKSHOPID }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v5
+        with:
+            lfs: true
+            submodules: true
+      - name: Uploading stuff
+        run: /app/push.sh
