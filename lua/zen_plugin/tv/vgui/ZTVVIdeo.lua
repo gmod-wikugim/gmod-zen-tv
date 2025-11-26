@@ -7,7 +7,7 @@ function PANEL:Init()
     self.VideoStartTime = 0
     self.VideoCurrentTime = 0
 
-    self.CurrentVolume = 1
+    self.CurrentVolume = 0.5
 
     self.CurrentlyPlaying = nil
 end
@@ -33,6 +33,8 @@ function PANEL:SetPlayTime(time)
             video.currentTime = %f;
         }
     ]], time))
+
+    self.VideoCurrentTime = time
 end
 
 -- Stop video playback
@@ -83,6 +85,8 @@ end
 ---@param time number
 function PANEL:OnTimeUpdate(time)
     -- print("ZTVVideo: Time Update: " .. tostring(time))
+
+    self.VideoCurrentTime = time
 end
 
 function PANEL:_injectTimeUpdateListener()
@@ -172,14 +176,24 @@ function PANEL:_injectPlayStatusListeners()
 end
 
 
-
+function PANEL:PostDocumentReady()
+    -- Override in derived classes
+end
 
 function PANEL:OnDocumentReady()
     -- print("ZTVVideo: Document Ready")
 
+    if self.VideoCurrentTime > 0 then
+        self:SetPlayTime(self.VideoCurrentTime)
+    end
+
+    self:SetVolume(self.CurrentVolume)
+
     self:_injectTimeUpdateListener()
     self:_injectURLChangeListener()
     self:_injectPlayStatusListeners()
+
+    self:PostDocumentReady()
 end
 
 -- OnVideoError

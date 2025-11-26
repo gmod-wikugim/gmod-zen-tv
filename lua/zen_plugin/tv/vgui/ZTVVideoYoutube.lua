@@ -16,8 +16,19 @@ function PANEL:SetVolume(volume)
     self.CurrentVolume = volume
 end
 
+---@param video_url string
+---@param startTime? number in seconds
+function PANEL:OpenVideo(video_url, startTime)
+    if startTime then
+        video_url = video_url .. "&t=" .. tostring(math.floor(startTime)) .. "s"
+    end
 
-function PANEL:OnDocumentReady()
+
+    self:OpenURL(video_url)
+end
+
+
+function PANEL:PostDocumentReady()
 
     self:RunJavascript(
         [[
@@ -72,10 +83,6 @@ function PANEL:OnDocumentReady()
         if(document.getElementsByClassName('ytp-gradient-top').length)document.getElementsByClassName('ytp-gradient-top')[0].remove()
     ]])
 
-
-    self:_injectTimeUpdateListener()
-    self:_injectURLChangeListener()
-    self:_injectPlayStatusListeners()
 end
 
 vgui.Register("ZTVVideoYoutube", PANEL, "ZTVVideo")
